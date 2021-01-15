@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Path, HTTPException, Depends
 from pydantic import BaseModel
+from typing import List
 
 app = FastAPI()
 
@@ -38,3 +39,8 @@ async def get_item(name: str):
 @app.post("/item/{name}", response_model=ItemOut, dependencies=[Depends(verify_item_in_db)])
 async def post_item(name: str, item: ItemIn):
     return save_item_in_db(name, item)
+
+@app.get("/items", response_model=List[ItemOut])
+async def get_items():
+    return [item for item in items_by_name.values()]
+
