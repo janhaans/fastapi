@@ -10,37 +10,41 @@ class ItemIn(BaseModel):
     price: float
     quantity: int
 
-class ItemInDb(ItemIn):
+class ItemOut(ItemIn):
     name: str
 
-class ItemOut(ItemInDb):
-    pass
 
-async def verify_item_not_in_db(name: str):
+def verify_item_not_in_db(name: str):
     item = items_by_name.get(name)
     if item is None:
         raise HTTPException(status_code=404, detail=f'Item {name} is not in the database')
 
-async def verify_item_in_db(name: str):
+def verify_item_in_db(name: str):
     item = items_by_name.get(name)
     if item is not None:
         raise HTTPException(status_code=404, detail=f'Item {name} is in the database')
 
 def save_item_in_db(name: str, item: ItemIn):
-    item_in_db = ItemInDb(name=name, **item.dict()) 
-    items_by_name[name] = { **item_in_db.dict() }
-    return item_in_db
+    items_by_name[name] = { 'name': name, **item.dict() }
+    return items_by_name.get(name)
 
 @app.get("/item/{name}", response_model=ItemOut, dependencies=[Depends(verify_item_not_in_db)])
 async def get_item(name: str):
-    return { **items_by_name[name] }
+    item = items_by_name.get(name)
+    return item
     
-
 @app.post("/item/{name}", response_model=ItemOut, dependencies=[Depends(verify_item_in_db)])
 async def post_item(name: str, item: ItemIn):
-    return save_item_in_db(name, item)
+    saved_item = save_item_in_db(name, item)
+    return saved_item
+
+@app.delete("/item/{name}", response_model=ItemOut, dependencies=[Depends(verify_item_not_in_db)])
+async def delete_item(name: str):
+    deleted_item = items_by_name.pop(name)
+    return deleted_item
 
 @app.get("/items", response_model=List[ItemOut])
 async def get_items():
-    return [item for item in items_by_name.values()]
+    items = [item for item in items_by_name.values()]
+    return items
 
