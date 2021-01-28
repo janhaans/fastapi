@@ -45,7 +45,7 @@ def get_stock(db: Session, item_id: int, shop_id: int):
     return db.query(models.Stock).filter(models.Stock.item_id == item_id and models.Stock.shop_id == shop_id).first()
 
 def create_stock(db: Session, stock: schemas.StockDBIn):
-    db_stock = model.Stock(**stock.dict())
+    db_stock = models.Stock(**stock.dict())
     db.add(db_stock)
     db.commit()
     db.refresh(db_stock)

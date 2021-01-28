@@ -79,18 +79,18 @@ def get_stock(stock: schemas.StockRead, db: Session = Depends(get_db)):
     db_shop = crud.get_shop(db, name=stock.shop_name)
     if db_shop is None:
         raise HTTPException(status_code=404, detail="Shop not found")
-    db_stock = crud.get_stock(db, item_id=db.item.id, shop_id=db.shop.id)
+    db_stock = crud.get_stock(db, item_id=db_item.id, shop_id=db_shop.id)
     stock = schemas.StockOutput(item=db_item, shop=db_shop, quantity=db_stock.quantity)
     return stock
 
 @app.post("/stock", response_model=schemas.Stock)
 def create_stock(stock: schemas.StockCreate, db: Session = Depends(get_db)):
-    db_item = crud.get_item(db, item_name=stock.item_name)
+    db_item = crud.get_item(db, name=stock.item_name)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    db_shop = crud.get_shop(db, shop_name=stock.shop_name)
+    db_shop = crud.get_shop(db, name=stock.shop_name)
     if db_shop is None:
         raise HTTPException(status_code=404, detail="Shop not found")
-    new_stock = schemas.StockDBIn(item_id=db.item.id, shop_id=db_shop.id, quantity=stock.quantity)
+    new_stock = schemas.StockDBIn(item_id=db_item.id, shop_id=db_shop.id, quantity=stock.quantity)
     return crud.create_stock(db=db, stock=new_stock)
 
